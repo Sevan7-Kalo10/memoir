@@ -99,7 +99,7 @@ When input contains "pure function" → `#fp` lights up → `code/functional-sty
 
 ## Philosophy
 
-This framework was not designed on a whiteboard. It grew from a personal agent memory system that ran daily from May 2025 onward — accumulating real memories, hitting real scaling pains, and evolving real solutions. Every design decision has a scar behind it.
+This framework was not designed on a whiteboard. It grew from a personal agent memory system that ran daily from May 2026 onward — accumulating real memories, hitting real scaling pains, and evolving real solutions. Every design decision has a scar behind it.
 
 Read the full spec at [specs/MEMOIR-SPEC.md](specs/MEMOIR-SPEC.md).
 
