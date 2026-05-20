@@ -1,0 +1,37 @@
+store:
+  path: "."
+  archive_dir: "archive"
+  trigger_file: "triggers.md"
+
+domains:
+  - name: core
+    index: MEMORY.md
+    always_load: true
+
+  - name: philosophy
+    index: MEMORY-philosophy.md
+    always_load: false
+
+  - name: code
+    index: MEMORY-code.md
+    always_load: false
+
+weight:
+  decay:
+    5: { days: null }
+    4: { days: 60, to: 3 }
+    3: { days: 30, to: 2 }
+    2: { days: 60, to: 1 }
+    1: { days: 90, action: archive }
+
+  boost:
+    thresholds: [5, 15, 30]
+    cap: 5
+
+loading:
+  max_tokens: 8000
+  trim_order: [3, 4]
+
+evolution:
+  continue_prior: true
+  archive_index: "archive/INDEX.md"
