@@ -1,3 +1,5 @@
+[English](README.en.md) | 中文
+
 # ksteam-memoir
 
 **让 AI 拥有会演化的记忆。**
