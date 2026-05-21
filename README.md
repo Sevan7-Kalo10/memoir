@@ -34,15 +34,15 @@ memoir 记住的不是"内容"，是"时间线上发生过的事"。
 
 **如果你只用在 Claude Code 上——memoir 现在就够用。** 其他工具的适配在看路线图走。
 
-## What You Can Build With Memoir
+## 能做什么
 
-- **Personal AI companions** — agents that remember you across sessions: preferences, shared history, inside jokes. Not a fresh start every time.
-- **Role-playing characters** — NPCs or story agents with persistent personality layers, evolving relationships, and selective memory.
-- **Long-running coding assistants** — remembers your codebase conventions, past architectural decisions, and why that one module is "don't touch."
-- **Research / reading companions** — tracks what you've read, what ideas connect, what questions remain open.
-- **Multi-agent collaboration** — each agent with its own memory store, sharing curated snapshots rather than raw context dumps.
+- **个人 AI 伴侣** — 跨会话记住你的偏好、共同经历、只有你们懂的梗。不用每次都从头开始。
+- **角色扮演角色** — 持续的人设层、演化的关系、选择性的记忆。
+- **长期编程助手** — 记住你的代码规范、历史架构决策、以及那个"千万别碰"的模块。
+- **研究/阅读伴侣** — 追踪读过的书、关联的洞见、尚未解答的问题。
+- **多智能体协作** — 每个 agent 有独立记忆库，共享精炼快照而非原始上下文。
 
-Anywhere continuity matters and context windows aren't enough.
+任何需要"连续性超过上下文窗口"的场景。
 
 ## 安装
 
