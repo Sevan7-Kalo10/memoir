@@ -34,6 +34,30 @@ Anywhere continuity matters and context windows aren't enough.
 
 ---
 
+## Integrating Memoir
+
+Memoir is a library, not a product. ~15 lines of glue code and your AI has continuous memory.
+
+```python
+from memoir.config import MemoirConfig
+from memoir.core.loader import build_load_plan, render_context
+from memoir.core.weight import mark_triggered
+
+config = MemoirConfig.from_yaml("./my-memories/memoirs.yaml")
+
+def context_for(user_input: str) -> str:
+    plan = build_load_plan(config.store_path, config, conversation_text=user_input)
+    for f in plan.files:
+        mark_triggered(config.store_path / f)  # triggers boost weight over time
+    return render_context(plan, config.store_path)
+```
+
+Paste the output into your AI's system prompt. Works with OpenAI, DeepSeek, Claude API, or any custom client.
+
+Full guide with chat API, Claude Code hooks, and append/search examples: [INTEGRATION.md](INTEGRATION.md)
+
+---
+
 ## Quick Start
 
 ```bash
