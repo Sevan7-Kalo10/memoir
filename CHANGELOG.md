@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.3 (2026-05-21)
+
+- **CJK token estimation**: `estimate_tokens` now counts CJK characters (~1.5 tokens/char). Chinese text was under-estimated by 6x — "8 characters" went from 1.3 to 12 tokens. Fixes token budget trimming for Chinese-heavy stores.
+- **Regex pre-compilation**: `TriggerRule` compiles regex patterns once at load time instead of re-compiling on every `match()` call
+- **Content caching**: `LoadPlan._content_cache` eliminates duplicate file I/O — `build_load_plan`, `render_context`, and `_trim_weight` now share a single read pass
+- **Integration guide** (`INTEGRATION.md`): manual paste approach (zero code) + automatic Claude Code hooks injection — with OpenAI/DeepSeek API examples and common patterns
+- 64 tests passing
+
 ## 0.1.2 (2026-05-21)
 
 - **FTS5 search index** (`memoir.core.indexer`): full-text search with BM25 ranking, weight-range filtering, and tag intersection. Zero extra dependencies (sqlite3 stdlib).
