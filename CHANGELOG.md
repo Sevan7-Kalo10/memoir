@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.2 (2026-05-21)
+
+- **FTS5 search index** (`memoir.core.indexer`): full-text search with BM25 ranking, weight-range filtering, and tag intersection. Zero extra dependencies (sqlite3 stdlib).
+- **Layer 2.5 FTS5 fallback** in loader: when keyword triggers miss, FTS5 catches semantically related files
+- **CLI additions**: `memoir index`, `memoir fts5-search`
+- Enhanced `memoir search`: automatically uses FTS5 when index is available
+- Fixed: spec incorrectly stated "May 2025" → corrected to May 2026
+- 64 tests (7 new for indexer)
+
 ## 0.1.0 (2026-05-20)
 
 Initial release.

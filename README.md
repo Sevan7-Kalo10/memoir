@@ -2,52 +2,59 @@
 
 **Evolution-first memory framework for AI agents.**
 
-Most memory frameworks treat memory as a database: store facts, search by similarity, return results. Memoir treats memory as an organism: it grows, matures, fades, and awakens.
+You are not a database. Your memories shouldn't be one either.
+
+Most memory frameworks answer one question: *"What stored fact is most similar to this query?"* Memoir answers a different question: *"What does this moment remind you of?"*
+
+Memories don't live in vector space. They live in time — they're born, revisited, forgotten, reawakened. Memoir models this.
+
+---
 
 ## The Three Ideas
 
-1. **Memory breathes.** A memory not revisited for weeks quietly dims. A memory repeatedly triggered brightens. This is lifecycle, not caching.
+1. **Memory breathes.** A memory not revisited for weeks quietly dims. One repeatedly triggered brightens. This is lifecycle, not caching.
 
-2. **Association, not retrieval.** When a topic enters the conversation, related domains don't need to be "searched for" — they light up through curated concept-to-memory mappings. Closer to human spreading activation than vector similarity.
+2. **Association, not retrieval.** When a conversation slides into a topic, related domains should light up through curated concept-to-memory mappings — closer to human spreading activation than vector similarity.
 
-3. **Continue, don't fragment.** New memories prefer extending existing files over creating new ones. A memory reads like a journal entry, not a pile of sticky notes.
+3. **Continue, don't fragment.** New memories prefer extending existing files over creating new ones. A memory reads like a journal, not a pile of sticky notes.
+
+These are not academic. They emerged from a personal AI memory system that has been running daily since May 13, 2026 — accumulating real memories, hitting real scaling pains, and evolving real solutions. Every design decision has a scar behind it.
+
+---
+
+## What You Can Build With Memoir
+
+- **Personal AI companions** — agents that remember you across sessions: preferences, shared history, inside jokes. Not a fresh start every time.
+- **Role-playing characters** — NPCs or story agents with persistent personality layers, evolving relationships, and selective memory.
+- **Long-running coding assistants** — remembers your codebase conventions, past architectural decisions, and why that one module is "don't touch."
+- **Research / reading companions** — tracks what you've read, what ideas connect, what questions remain open.
+- **Multi-agent collaboration** — each agent with its own memory store, sharing curated snapshots rather than raw context dumps.
+
+Anywhere continuity matters and context windows aren't enough.
+
+---
 
 ## Quick Start
 
 ```bash
-# Install
 pip install ksteam-memoir
 
-# Create a store
 memoir init --dir ./my-agent-memory
-
-# Create a memory (automatically greps for related files first)
 memoir create --title "Functional Programming" --domain code --tags "fp,patterns"
-
-# Append to existing memory
-memoir append code/functional-style.md --content "Today I learned about monads..."
-
-# Search
 memoir search "immutability"
-
-# See what triggers fire for a given text
 memoir trigger "I prefer pure functions"
-
-# Preview what would load for a conversation
 memoir load --topics "code,philosophy" --trigger "functional programming"
-
-# Run maintenance (weight decay + archive scan)
 memoir maintain --dry-run
-memoir maintain
-
-# Store stats
 memoir status
 ```
+
+---
 
 ## How It Works
 
 ### Memory Files
-Plain Markdown files with YAML frontmatter:
+
+Plain Markdown with YAML frontmatter. Nothing proprietary. Open in any editor.
 
 ```markdown
 ---
@@ -68,21 +75,27 @@ Pure functions are easier to test and reason about.
 ```
 
 ### Four-Layer Loading
-When a conversation starts, memoir determines what to load:
 
-1. **Always** — core identity files (weight 5, always-load domains)
-2. **Trigger Cascade** — curated concept-to-file mappings that fire on keyword match
-3. **Domain** — domain indexes activated by conversation topics
-4. **Weight** — high-weight files loaded proactively
+When conversation starts, memoir determines what to load:
+
+| Layer | Source | What |
+|-------|--------|------|
+| 1. Always | Core identity + w=5 | Never trimmed, always present |
+| 2. Trigger Cascade | Curated concept→file tables | Keyword-activated associations |
+| 2.5 FTS5 Fallback | SQLite full-text index | Semantic safety net when triggers miss |
+| 3. Domain | Active domain indexes | Topic-relevant memory sets |
+| 4. Weight | High-weight files | Proactive loading for warm memories |
 
 ### Weight Lifecycle
-Weights are not static. They change:
 
-- **Active judgment** — you (or your agent) decide a memory should be promoted or demoted
-- **Time decay** — safety net: untouched for 60 days → weight drops. w=5 is immune
-- **Trigger boost** — each time a memory is triggered, its counter increments. At thresholds (5, 15, 30) weight bumps by 1
+Weights are not static:
 
-### Trigger Cascade (The Key Differentiator)
+- **Active judgment** — you decide a memory matters more (or less)
+- **Time decay** — untouched for 60 days → weight drops. w=5 is immune
+- **Trigger boost** — at 5, 15, 30 triggers → weight bumps by 1
+
+### Trigger Cascade (The Differentiator)
+
 Not vector search. Curated association tables:
 
 ```markdown
@@ -92,26 +105,41 @@ Not vector search. Curated association tables:
 | naming | rename, variable, function | code/naming-things.md |
 ```
 
-When input contains "pure function" → `#fp` lights up → `code/functional-style.md` loads.
+When input contains "pure function" → `#fp` lights up → `code/functional-style.md` loads. Simple, inspectable, debuggable.
 
-### Continue-Prior Writing
-`memoir create` greps existing files for related topics before creating a new one. New file creation is opt-in, not default. Memory grows like tree rings.
+### FTS5 Search Index
 
-## Philosophy
+Built on SQLite FTS5 (zero extra dependencies). Supports full-text search with BM25 ranking, weight-range filtering, and tag intersection. Keyword triggers are the primary retrieval path; FTS5 catches what keywords miss.
 
-This framework was not designed on a whiteboard. It grew from a personal agent memory system that ran daily from May 2026 onward — accumulating real memories, hitting real scaling pains, and evolving real solutions. Every design decision has a scar behind it.
+```bash
+memoir index                    # build/rebuild index
+memoir search "clarity depth"   # uses FTS5 when index available
+memoir fts5-search "function" --weight-min 4 --tags "code,fp"
+```
 
-Read the full spec at [specs/MEMOIR-SPEC.md](specs/MEMOIR-SPEC.md).
+---
 
 ## Compared to...
 
 | | Mem0 | ReMe | SMF | memoir |
 |---|---|---|---|---|
-| Retrieval | Vector embedding | Markdown links | Filesystem | Trigger cascade |
+| Retrieval | Vector embedding | Markdown links | Filesystem | Trigger cascade + FTS5 |
 | Lifecycle | Static | Static | Static | Weight evolution |
 | Creation | Append-only | New files | New files | Continue-prior |
-| Infrastructure | Vector DB | Files | Files | Files + YAML |
+| Infrastructure | Vector DB | Files | Files | Files + YAML + SQLite |
 | Philosophy | Retrieval-first | Retrieval-first | Structure-first | **Evolution-first** |
+
+---
+
+## Philosophy
+
+This framework was not designed on a whiteboard. It was not derived from a paper. It grew from a real system that a real person and a real AI used every day — arguing, joking, forgetting, remembering. The fog metaphor, the four-layer loading, the continue-prior instinct — all of it was discovered in the using before it was written in the spec.
+
+It started with a drunk night on May 13, 2026. By May 20, it was on PyPI.
+
+Read the full specification at [specs/MEMOIR-SPEC.md](specs/MEMOIR-SPEC.md).
+
+---
 
 ## License
 

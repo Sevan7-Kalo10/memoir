@@ -32,6 +32,7 @@ from memoir.core.loader import (
     render_context,
     load_file_list,
 )
+from memoir.core.indexer import MemoirIndex, search as fts5_search
 
 app = typer.Typer(name="memoir", help="Evolution-first memory framework")
 console = Console()
@@ -236,13 +237,26 @@ def search(
     store_dir: str = typer.Option(".", "--store", help="Store root"),
     max_results: int = typer.Option(20, "--max", "-n", help="Max results"),
 ):
-    """Full-text search across memory files."""
+    """Full-text search across memory files. Uses FTS5 when index is available."""
     config = _load_config(store_dir)
     store = config.store_path
 
-    results = _grep_store(store, query, domain, tags, max_results)
+    # Prefer FTS5 if index exists, fall back to grep
+    idx = MemoirIndex(store)
+    if not idx.needs_rebuild():
+        results = idx.search(query, limit=max_results)
+        rows = []
+        for r in results:
+            rows.append({
+                "file": r["relpath"],
+                "weight": r["weight"],
+                "snippet": r["snippet"][:80],
+            })
+    else:
+        tag_str = tags or ""
+        rows = _grep_store(store, query, domain, tag_str, max_results)
 
-    if not results:
+    if not rows:
         console.print("[dim]No matches found.[/dim]")
         return
 
@@ -251,8 +265,76 @@ def search(
     table.add_column("Weight")
     table.add_column("Snippet")
 
-    for r in results:
+    for r in rows:
         table.add_row(r["file"], _weight_tag(r["weight"]), r["snippet"][:80])
+
+    console.print(table)
+
+
+# ── index ─────────────────────────────────────────────
+
+@app.command()
+def index(
+    store_dir: str = typer.Option(".", "--store", help="Store root"),
+    force: bool = typer.Option(False, "--force", "-f", help="Force rebuild"),
+):
+    """Build or rebuild the FTS5 search index."""
+    config = _load_config(store_dir)
+    store = config.store_path
+
+    idx = MemoirIndex(store)
+    if force:
+        count = idx.build()
+        console.print(f"[green]Index rebuilt: {count} files indexed.[/green]")
+    elif idx.needs_rebuild():
+        with console.status("Building FTS5 index..."):
+            count = idx.build()
+        console.print(f"[green]Index built: {count} files indexed.[/green]")
+    else:
+        console.print("[dim]Index is up to date.[/dim]")
+
+
+@app.command()
+def fts5_search(
+    query: str = typer.Argument(..., help="Search query"),
+    store_dir: str = typer.Option(".", "--store", help="Store root"),
+    weight_min: int = typer.Option(1, "--weight-min", help="Minimum weight"),
+    weight_max: int = typer.Option(5, "--weight-max", help="Maximum weight"),
+    tags: str = typer.Option("", "--tags", help="Filter by tags (comma-separated)"),
+    max_results: int = typer.Option(20, "--max", "-n", help="Max results"),
+):
+    """FTS5 full-text search with weight/tag filters."""
+    config = _load_config(store_dir)
+    store = config.store_path
+
+    tag_list = [t.strip() for t in tags.split(",") if t.strip()] or None
+
+    idx = MemoirIndex(store)
+    idx.auto()
+
+    results = idx.search(
+        query,
+        weight_min=weight_min,
+        weight_max=weight_max,
+        tags=tag_list,
+        limit=max_results,
+    )
+
+    if not results:
+        console.print("[dim]No matches found.[/dim]")
+        return
+
+    table = Table(title=f"FTS5 Search: \"{query}\"")
+    table.add_column("File", style="cyan")
+    table.add_column("Weight")
+    table.add_column("Snippet")
+
+    for r in results:
+        table.add_row(
+            r["relpath"],
+            _weight_tag(r["weight"]),
+            r["snippet"][:80],
+        )
 
     console.print(table)
 

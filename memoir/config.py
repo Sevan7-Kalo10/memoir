@@ -40,6 +40,8 @@ class WeightConfig(BaseModel):
 class LoadingConfig(BaseModel):
     max_tokens: int = 8000
     trim_order: list[int] = [3, 4]
+    fts5_fallback: bool = True
+    fts5_limit: int = 8
 
 
 class EvolutionConfig(BaseModel):

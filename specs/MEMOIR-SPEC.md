@@ -14,7 +14,7 @@ Three core ideas:
 
 3. **Continue, don't fragment.** New memories should prefer extending existing files over creating new ones. A memory's evolution should read like a journal entry, not a pile of sticky notes.
 
-These ideas are not academic. They emerged from real usage — a personal agent memory system that grew organically from May 2025 onward, accumulating real memories, hitting real scaling pains, and evolving real solutions.
+These ideas are not academic. They emerged from real usage — a personal agent memory system that grew organically from May 2026 onward, accumulating real memories, hitting real scaling pains, and evolving real solutions.
 
 ---
 

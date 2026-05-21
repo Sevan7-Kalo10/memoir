@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ksteam-memoir"
-version = "0.1.1"
+version = "0.1.2"
 description = "Evolution-first memory framework for AI agents — memories that grow, mature, and fade"
 readme = "README.md"
 license = {text = "MIT"}

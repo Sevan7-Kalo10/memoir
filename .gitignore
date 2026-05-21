@@ -12,3 +12,4 @@ venv/
 *.~?~
 .DS_Store
 .coverage
+.memoir_index.db

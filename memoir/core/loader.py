@@ -17,6 +17,7 @@ from pathlib import Path
 
 from memoir.config import MemoirConfig
 from memoir.core.frontmatter import parse
+from memoir.core.indexer import MemoirIndex
 from memoir.core.triggers import (
     TriggerRule,
     TriggerTable,
@@ -133,6 +134,21 @@ def build_load_plan(
     # ── Layer 2: Trigger Cascade ──
     for f in triggered_files:
         add_file(f, "trigger", weight=4)
+
+    # ── Layer 2.5: FTS5 semantic fallback ──
+    if conversation_text and config.loading.fts5_fallback:
+        try:
+            index = MemoirIndex(store_path)
+            if not index.needs_rebuild():
+                fts5_results = index.search(
+                    conversation_text,
+                    weight_min=2,
+                    limit=config.loading.fts5_limit,
+                )
+                for r in fts5_results:
+                    add_file(r["relpath"], "search", weight=r["weight"])
+        except Exception:
+            pass
 
     # ── Layer 3: Domain ──
     for domain_name in active_domains:
