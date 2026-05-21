@@ -1,146 +1,115 @@
 # ksteam-memoir
 
-**Evolution-first memory framework for AI agents.**
+**让 AI 拥有会演化的记忆。**
 
-You are not a database. Your memories shouldn't be one either.
+memoir 不是一个记忆数据库。它是一套记忆的生命周期——出生、成长、触发、衰减、归档。不是"存起来以后搜"，是"该醒的时候自己醒"。
 
-Most memory frameworks answer one question: *"What stored fact is most similar to this query?"* Memoir answers a different question: *"What does this moment remind you of?"*
+## 核心理念
 
-Memories don't live in vector space. They live in time — they're born, revisited, forgotten, reawakened. Memoir models this.
+传统记忆系统（RAG、向量库）是检索优先：你问 → 我搜 → 返回片段。
+memoir 是演化优先：记忆有呼吸。权重升了沉了、话题滑进来域跟着亮灯、低权重自己归档。
 
----
+```
+memoir 记住的不是"内容"，是"时间线上发生过的事"。
+```
 
-## The Three Ideas
+## 当前状态（2026-05-21 v0.1.4）
 
-1. **Memory breathes.** A memory not revisited for weeks quietly dims. One repeatedly triggered brightens. This is lifecycle, not caching.
+**能开箱即用的：**
 
-2. **Association, not retrieval.** When a conversation slides into a topic, related domains should light up through curated concept-to-memory mappings — closer to human spreading activation than vector similarity.
+| 平台 | 集成方式 | 状态 |
+|------|---------|------|
+| Claude Code | 丢进项目文件夹 → AI 读一次 CLAUDE.md 就知道怎么用 | 完整可用 |
+| Python API | `pip install ksteam-memoir` → `build_load_plan()` → 贴进 system prompt | 完整可用 |
+| CLI | `memoir create/load/search/maintain` 全套命令 | 可用（Windows cmd 有限制，见下） |
 
-3. **Continue, don't fragment.** New memories prefer extending existing files over creating new ones. A memory reads like a journal, not a pile of sticky notes.
+**已知局限（诚实地说）：**
 
-These are not academic. They emerged from a personal AI memory system that has been running daily since May 13, 2026 — accumulating real memories, hitting real scaling pains, and evolving real solutions. Every design decision has a scar behind it.
+- **Windows cmd 下 `memoir create` 不可用。** 中文参数截断 + rich 交互提示编码崩溃。绕过：PowerShell 正常；或手动创建 .md 文件 → `memoir append` 补充内容。
+- **tags 只是标签，不自动生成触发规则。** 用户在 frontmatter 写 `tags: [哲学, 加缪]`，不代表说"加缪"时会触发这条记忆。trigger 表需要手工维护。
+- **`memoir create` 后 MEMORY.md 索引自动更新已修（v0.1.4），但只追加到 "## Other" 段。** 域索引的手工整理仍需人工。
+- **DeepSeek TUI、Cline 等有 tool use 的工具：** 需要手动约定"启动时跑 memoir status / memoir load --render"。AI 不会自动知道 memoir 的存在。
 
----
+**如果你只用在 Claude Code 上——memoir 现在就够用。** 其他工具的适配在看路线图走。
 
-## What You Can Build With Memoir
-
-- **Personal AI companions** — agents that remember you across sessions: preferences, shared history, inside jokes. Not a fresh start every time.
-- **Role-playing characters** — NPCs or story agents with persistent personality layers, evolving relationships, and selective memory.
-- **Long-running coding assistants** — remembers your codebase conventions, past architectural decisions, and why that one module is "don't touch."
-- **Research / reading companions** — tracks what you've read, what ideas connect, what questions remain open.
-- **Multi-agent collaboration** — each agent with its own memory store, sharing curated snapshots rather than raw context dumps.
-
-Anywhere continuity matters and context windows aren't enough.
-
----
-
-## Quick Start
+## 安装
 
 ```bash
 pip install ksteam-memoir
-
-memoir init --dir ./my-agent-memory
-memoir create --title "Functional Programming" --domain code --tags "fp,patterns"
-memoir search "immutability"
-memoir trigger "I prefer pure functions"
-memoir load --topics "code,philosophy" --trigger "functional programming"
-memoir maintain --dry-run
-memoir status
 ```
 
----
-
-## How It Works
-
-### Memory Files
-
-Plain Markdown with YAML frontmatter. Nothing proprietary. Open in any editor.
-
-```markdown
----
-name: functional-programming
-weight: 4
-tags: [code, fp, patterns]
-domain: code
-description: Why I prefer pure functions
-created: 2026-05-20T12:00:00
----
-
-# Functional Programming
-
-Pure functions are easier to test and reason about.
-
-## Log
-- **2026-06-01** — encountered a case where recursion was cleaner than reduce.
-```
-
-### Four-Layer Loading
-
-When conversation starts, memoir determines what to load:
-
-| Layer | Source | What |
-|-------|--------|------|
-| 1. Always | Core identity + w=5 | Never trimmed, always present |
-| 2. Trigger Cascade | Curated concept→file tables | Keyword-activated associations |
-| 2.5 FTS5 Fallback | SQLite full-text index | Semantic safety net when triggers miss |
-| 3. Domain | Active domain indexes | Topic-relevant memory sets |
-| 4. Weight | High-weight files | Proactive loading for warm memories |
-
-### Weight Lifecycle
-
-Weights are not static:
-
-- **Active judgment** — you decide a memory matters more (or less)
-- **Time decay** — untouched for 60 days → weight drops. w=5 is immune
-- **Trigger boost** — at 5, 15, 30 triggers → weight bumps by 1
-
-### Trigger Cascade (The Differentiator)
-
-Not vector search. Curated association tables:
-
-```markdown
-| #Concept | Keywords | → Files |
-|---|---|---|
-| fp | pure, immutab, side effect | code/functional-style.md |
-| naming | rename, variable, function | code/naming-things.md |
-```
-
-When input contains "pure function" → `#fp` lights up → `code/functional-style.md` loads. Simple, inspectable, debuggable.
-
-### FTS5 Search Index
-
-Built on SQLite FTS5 (zero extra dependencies). Supports full-text search with BM25 ranking, weight-range filtering, and tag intersection. Keyword triggers are the primary retrieval path; FTS5 catches what keywords miss.
+## 快速开始（Claude Code）
 
 ```bash
-memoir index                    # build/rebuild index
-memoir search "clarity depth"   # uses FTS5 when index available
-memoir fts5-search "function" --weight-min 4 --tags "code,fp"
+cd your-project
+memoir init
 ```
 
----
+在项目的 `CLAUDE.md` 中加入：
 
-## Compared to...
+```markdown
+你使用 ksteam-memoir 管理记忆。
+启动时跑 `memoir status`。用户说"加载记忆"时跑 `memoir load --render`。
+对话中有值得记的内容时跑 `memoir create`。
+```
 
-| | Mem0 | ReMe | SMF | memoir |
-|---|---|---|---|---|
-| Retrieval | Vector embedding | Markdown links | Filesystem | Trigger cascade + FTS5 |
-| Lifecycle | Static | Static | Static | Weight evolution |
-| Creation | Append-only | New files | New files | Continue-prior |
-| Infrastructure | Vector DB | Files | Files | Files + YAML + SQLite |
-| Philosophy | Retrieval-first | Retrieval-first | Structure-first | **Evolution-first** |
+然后正常跟 AI 对话——AI 读到 CLAUDE.md 后会自己判断什么时候调哪个命令。
 
----
+## 命令总览
 
-## Philosophy
+| 命令 | 做什么 |
+|------|--------|
+| `memoir status` | 看记忆库：多少条、权重分布、归档数 |
+| `memoir create -t "标题" -w 权重 -c "内容" --tags "标签"` | 创建新记忆。先搜已有文件（续写优先） |
+| `memoir append core/文件名.md -c "内容"` | 给已有记忆续写一条带时间戳的条目 |
+| `memoir load --render` | 渲染当前该加载的记忆，输出直接贴进 AI 上下文 |
+| `memoir search "关键词"` | FTS5 全文搜索 |
+| `memoir trigger "用户说的话"` | 调试：哪些记忆会被这句话唤醒 |
+| `memoir maintain --dry-run` | 预览权重衰减和归档（不修改） |
+| `memoir maintain` | 执行衰减和归档 |
+| `memoir archive-cmd core/旧文件.md` | 手动归档 |
+| `memoir restore 旧文件.md` | 恢复归档记忆（权重自动降一级） |
 
-This framework was not designed on a whiteboard. It was not derived from a paper. It grew from a real system that a real person and a real AI used every day — arguing, joking, forgetting, remembering. The fog metaphor, the four-layer loading, the continue-prior instinct — all of it was discovered in the using before it was written in the spec.
+## 权重体系
 
-It started with a drunk night on May 13, 2026. By May 20, it was on PyPI.
+| weight | 含义 | 衰减规则 |
+|--------|------|---------|
+| 5 | 这是我的一部分 | 永不衰减 |
+| 4 | 很重要 | 60天→降3 |
+| 3 | 记得就行 | 30天→降2 |
+| 2 | 暂时记着 | 60天→降1 |
+| 1 | 快忘了 | 90天→自动归档 |
 
-Read the full specification at [specs/MEMOIR-SPEC.md](specs/MEMOIR-SPEC.md).
+## 三层加载
 
----
+1. **核心层**（always）—— core 域、w=5。永远在线。
+2. **浮现层**（weight）—— w≥4 自动浮上来。人醒着时自然记得的事。
+3. **潜伏层**（trigger）—— 话题滑进去才亮。不是忘了，是等人敲门。
 
-## License
+## 路线图
+
+| 优先级 | 项目 | 说明 |
+|--------|------|------|
+| 进行中 | AI_GUIDE.md | `memoir init` 时自动生成自然语言操作指南，AI 读完就知道怎么用 |
+| 下一步 | MCP Server | 暴露 7 个 MCP 工具。任何支持 MCP 的工具（DSTUI、Cline）零代码接入 |
+| 计划中 | 系统提示词集成 | 为无 tool use 的聊天 UI 提供静态注入方案 |
+| 计划中 | CLI 完善 | 修复 Windows cmd 编码问题；tags→trigger 自动生成 |
+
+## 竞品对比
+
+| | memoir | RAG/向量库 | ReMe |
+|---|--------|-----------|------|
+| 驱动方式 | 演化驱动 | 查询驱动 | 文件驱动 |
+| 记忆生命周期 | 有（衰减/归档） | 无 | 无 |
+| 触发方式 | 级联唤醒 | 向量相似度 | 文件名 |
+| 存储格式 | Markdown + YAML frontmatter | 向量 | Markdown |
+| 接入方式 | CLI + Python API → MCP | SDK | CLI |
+| 开箱即用 | 仅 Claude Code | — | — |
+
+## 为什么叫 memoir
+
+memoir（回忆录）不是 diary（日记）。日记是"今天发生了什么"，回忆录是"什么值得被记下来"。memoir 对待记忆的方式是回忆录式的——不是所有都留，留的要演化。
+
+## 许可证
 
 MIT

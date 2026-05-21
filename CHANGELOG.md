@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.4 (2026-05-21)
+
+- **Auto-update index on create**: `memoir create` now appends entry to domain MEMORY.md automatically
+- **Restore weight warning**: `memoir restore` warns that restored files (w=3) are not auto-loaded
+- **README rewrite**: honest platform support matrix, known limitations, roadmap, competitor comparison
+
+## 0.1.3 (2026-05-21)
+
+- **CJK token estimation fix**: Chinese text token counting corrected (was 2→now 12 for 8 chars)
+- **Regex precompilation**: performance optimization for frequently-used patterns
+- **Loader content cache**: build/trim/render now share one file read
+- **INTEGRATION.md**: manual and automatic integration guides for Claude Code
+
 ## 0.1.2 (2026-05-21)
 
 - **FTS5 search index** (`memoir.core.indexer`): full-text search with BM25 ranking, weight-range filtering, and tag intersection. Zero extra dependencies (sqlite3 stdlib).
