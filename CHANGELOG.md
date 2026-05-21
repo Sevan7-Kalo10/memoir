@@ -1,11 +1,17 @@
 # Changelog
 
+## 0.1.4 (2026-05-21)
+
+- **Auto-update index on create**: `memoir create` now appends entry to domain MEMORY.md automatically
+- **Restore weight warning**: `memoir restore` warns that restored files (w=3) are not auto-loaded
+- **README rewrite**: honest platform support matrix, known limitations, roadmap, competitor comparison
+
 ## 0.1.3 (2026-05-21)
 
-- **CJK token estimation**: `estimate_tokens` now counts CJK characters (~1.5 tokens/char). Chinese text was under-estimated by 6x — "8 characters" went from 1.3 to 12 tokens. Fixes token budget trimming for Chinese-heavy stores.
-- **Regex pre-compilation**: `TriggerRule` compiles regex patterns once at load time instead of re-compiling on every `match()` call
-- **Content caching**: `LoadPlan._content_cache` eliminates duplicate file I/O — `build_load_plan`, `render_context`, and `_trim_weight` now share a single read pass
-- **Integration guide** (`INTEGRATION.md`): manual paste approach (zero code) + automatic Claude Code hooks injection — with OpenAI/DeepSeek API examples and common patterns
+- **CJK token estimation**: `estimate_tokens` now counts CJK characters (~1.5 tokens/char). Chinese text was under-estimated by 6x.
+- **Regex pre-compilation**: `TriggerRule` compiles regex once at load time
+- **Content caching**: `LoadPlan._content_cache` eliminates duplicate file I/O
+- **Integration guide** (`INTEGRATION.md`): manual + automatic Claude Code hooks injection
 - 64 tests passing
 
 ## 0.1.2 (2026-05-21)

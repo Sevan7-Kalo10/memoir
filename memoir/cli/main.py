@@ -193,6 +193,7 @@ def create(
     }
 
     write(filepath, frontmatter, content.strip())
+    _update_index(store, domain, filename, title, tag_list, weight)
     console.print(f"[green]Created {domain}/{filename} ({_weight_tag(weight)})[/green]")
 
 
@@ -538,6 +539,8 @@ def restore(
         store / config.evolution.archive_index,
     )
     console.print(f"[green]Restored:[/green] {restored} → {domain}/ (w=3)")
+    console.print("[dim]Note:[/dim] weight 3 memories are not auto-loaded by 'memoir load'.")
+    console.print("[dim]      Edit the file frontmatter to raise weight if this memory should always surface.[/dim]")
 
 
 @app.command()
@@ -666,6 +669,41 @@ def _grep_related(store: Path, title: str, tags: list[str]) -> list[str]:
         if score >= 2:
             related.append(str(md_file.relative_to(store)).replace("\\", "/"))
     return related[:5]
+
+
+def _update_index(store: Path, domain: str, filename: str, title: str, tags: list[str], weight: int):
+    """Add entry to domain index after creating a memory."""
+    index_file = store / f"MEMORY-{domain}.md" if domain != "core" else store / "MEMORY.md"
+    if not index_file.exists():
+        return
+
+    index_text = index_file.read_text(encoding="utf-8")
+
+    # Build entry line
+    tag_str = " ".join(f"#{t}" for t in tags) if tags else ""
+    entry = f"- [{title}]({domain}/{filename}) — {title} {tag_str} w={weight}\n"
+
+    # Find section matching first tag, or add under ## Other
+    section_tag = f"#{tags[0]}" if tags else ""
+    found_section = False
+    new_lines = []
+    for line in index_text.splitlines(keepends=True):
+        new_lines.append(line)
+        if section_tag and line.startswith("##") and section_tag.lower() in line.lower():
+            found_section = True
+        if found_section and line.strip() == "" and new_lines and new_lines[-1].strip() == "":
+            new_lines.append(entry)
+            found_section = False
+
+    if not found_section:
+        # Append before Trigger Table or at end
+        trigger_idx = next((i for i, l in enumerate(new_lines) if "## Trigger Table" in l), -1)
+        if trigger_idx >= 0:
+            new_lines.insert(trigger_idx, f"\n## Other\n{entry}\n")
+        else:
+            new_lines.append(f"\n## Other\n{entry}\n")
+
+    index_file.write_text("".join(new_lines), encoding="utf-8")
 
 
 def _grep_store(
