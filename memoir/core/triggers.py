@@ -23,31 +23,42 @@ class TriggerRule:
     action: str  # "load-domain:<name>" | "load-file:<path>" | "callback:<name>"
     source_file: str  # [[wikilink]]
     match_mode: str = "stem"  # exact | stem | phrase | regex | fuzzy
+    _compiled: list | None = field(default=None, repr=False)
+
+    def _compile(self):
+        """Pre-compile regex patterns (called once after load)."""
+        if self.match_mode == "regex" and self._compiled is None:
+            self._compiled = []
+            for p in self.phrases:
+                try:
+                    self._compiled.append(re.compile(p, re.IGNORECASE))
+                except re.error:
+                    self._compiled.append(None)
 
     def match(self, text: str, threshold: float = 0.82) -> bool:
-        """Return True if this rule matches the given text."""
         text_lower = text.lower()
-        for phrase in self.phrases:
+        for i, phrase in enumerate(self.phrases):
             phrase_lower = phrase.lower()
             if self.match_mode == "exact":
                 if phrase_lower in text_lower:
                     return True
             elif self.match_mode == "phrase":
-                # Phrase must appear as contiguous substring
                 if phrase_lower in text_lower:
                     return True
             elif self.match_mode == "regex":
-                try:
-                    if re.search(phrase, text, re.IGNORECASE):
+                if self._compiled and i < len(self._compiled) and self._compiled[i]:
+                    if self._compiled[i].search(text):
                         return True
-                except re.error:
-                    continue
+                else:
+                    try:
+                        if re.search(phrase, text, re.IGNORECASE):
+                            return True
+                    except re.error:
+                        continue
             elif self.match_mode == "fuzzy":
-                # Use token_sort_ratio for fuzzy matching against text
                 if fuzz.partial_ratio(phrase_lower, text_lower) >= threshold * 100:
                     return True
             else:  # stem (default)
-                # Each word in phrase must appear as substring in text
                 words = phrase_lower.split()
                 if all(w in text_lower for w in words):
                     return True
@@ -101,12 +112,14 @@ def load_triggers(trigger_file: str | Path) -> list[TriggerRule]:
         elif " " in phrase:
             mode = "phrase"
 
-        rules.append(TriggerRule(
+        rule = TriggerRule(
             phrases=[phrase],
             action=action,
             source_file=source,
             match_mode=mode,
-        ))
+        )
+        rule._compile()
+        rules.append(rule)
 
     return rules
 

@@ -35,6 +35,7 @@ class LoadPlan:
     weights: list[int] = field(default_factory=list)
     sources: list[str] = field(default_factory=list)  # "always", "trigger", "domain", "weight"
     total_tokens_estimate: int = 0
+    _content_cache: dict[str, str] = field(default_factory=dict, repr=False)
 
 
 def _norm(path: str) -> str:
@@ -66,9 +67,25 @@ def load_file_list(index_file: str | Path) -> list[str]:
 
 
 def estimate_tokens(text: str) -> int:
-    """Rough token estimate: words * 1.3. Conservative."""
-    words = len(text.split())
-    return int(words * 1.3)
+    """Token estimate: whitespace-delimited words + CJK characters.
+
+    Western text: ~1.3 tokens/word. CJK: ~1.5 tokens/char.
+    Without CJK handling, Chinese text ("这是一段记忆") would be counted
+    as 1 word * 1.3 = 1.3 tokens, when it's actually ~6 tokens.
+    """
+    cjk = 0
+    non_cjk_words = []
+    for ch in text:
+        if "一" <= ch <= "鿿" or "㐀" <= ch <= "䶿":
+            cjk += 1
+        elif ch.isspace():
+            continue
+    # Count non-CJK words
+    import re
+    # Remove CJK chars and split remaining text by whitespace
+    cleaned = re.sub(r"[一-鿿㐀-䶿]", " ", text)
+    words = cleaned.split()
+    return int(len(words) * 1.3 + cjk * 1.5)
 
 
 def build_load_plan(
@@ -187,13 +204,12 @@ def build_load_plan(
     for f in plan.files:
         filepath = store_path / f
         if filepath.exists():
-            plan.total_tokens_estimate += estimate_tokens(
-                filepath.read_text(encoding="utf-8")
-            )
+            content = filepath.read_text(encoding="utf-8")
+            plan._content_cache[f] = content
+            plan.total_tokens_estimate += estimate_tokens(content)
 
     if plan.total_tokens_estimate > max_tokens:
         trim_order = config.loading.trim_order
-        # Remove files by weight, lowest trim_order first
         for trim_weight in trim_order:
             if plan.total_tokens_estimate <= max_tokens:
                 break
@@ -207,11 +223,10 @@ def _trim_weight(plan: LoadPlan, store_path: Path, weight: int) -> None:
     i = 0
     while i < len(plan.files) and plan.total_tokens_estimate > 0:
         if plan.weights[i] == weight and plan.sources[i] != "always":
-            filepath = store_path / plan.files[i]
-            if filepath.exists():
-                plan.total_tokens_estimate -= estimate_tokens(
-                    filepath.read_text(encoding="utf-8")
-                )
+            f = plan.files[i]
+            cached = plan._content_cache.pop(f, None)
+            if cached is not None:
+                plan.total_tokens_estimate -= estimate_tokens(cached)
             plan.files.pop(i)
             plan.weights.pop(i)
             plan.sources.pop(i)
@@ -223,15 +238,20 @@ def render_context(plan: LoadPlan, store_path: str | Path) -> str:
     """Concatenate all files in the load plan into a single context string.
 
     Each file prefixed with a header: ## [Title](filepath) — weight: N
+    Uses cached content when available (avoids re-reading from disk).
     """
     store_path = Path(store_path)
     parts = []
 
     for f, weight in zip(plan.files, plan.weights):
-        filepath = store_path / f
-        if not filepath.exists():
-            continue
-        content = filepath.read_text(encoding="utf-8")
+        # Prefer cache, fall back to disk
+        if f in plan._content_cache:
+            content = plan._content_cache[f]
+        else:
+            filepath = store_path / f
+            if not filepath.exists():
+                continue
+            content = filepath.read_text(encoding="utf-8")
         parts.append(f"## [{f}]({f}) — weight: {weight}\n\n{content}")
 
     return "\n\n---\n\n".join(parts)
