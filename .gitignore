@@ -13,3 +13,7 @@ venv/
 .DS_Store
 .coverage
 .memoir_index.db
+build/
+memoir.spec
+memoir_run.py
+*.pyz
