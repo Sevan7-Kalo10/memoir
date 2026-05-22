@@ -37,6 +37,16 @@ from memoir.core.indexer import MemoirIndex, search as fts5_search
 app = typer.Typer(name="memoir", help="Evolution-first memory framework")
 console = Console()
 
+
+@app.callback(invoke_without_command=True)
+def _version_callback(
+    version: bool = typer.Option(False, "--version", "-V", help="Show version and exit"),
+):
+    if version:
+        from memoir import __version__
+        console.print(f"memoir {__version__}")
+        raise typer.Exit()
+
 WEIGHT_COLORS = {5: "green", 4: "blue", 3: "yellow", 2: "dark_orange", 1: "red"}
 
 
@@ -142,8 +152,8 @@ def create(
     weight: int = typer.Option(3, "--weight", "-w", help="Initial weight (1-5)"),
     content: str = typer.Option("", "--content", "-c", help="Memory content (or use $EDITOR)"),
     store_dir: str = typer.Option(".", "--store", help="Store root"),
-    yes: bool = typer.Option(False, "--yes", "-y", help="Auto-continue in first related file"),
-    no: bool = typer.Option(False, "--no", "-n", help="Always create new file, skip continue-prior"),
+    auto_append: bool = typer.Option(False, "--auto-append", "-A", help="Auto-append to first related file (skip prompt)"),
+    skip_related: bool = typer.Option(False, "--skip-related", "-S", help="Always create new file, skip continue-prior"),
 ):
     """Create a new memory. Greps for related files first (continue-prior)."""
     config = _load_config(store_dir)
@@ -153,10 +163,10 @@ def create(
     tag_list = [t.strip().lower() for t in tags.split(",") if t.strip()]
     related = _grep_related(store, title, tag_list)
 
-    if related and not no:
+    if related and not skip_related:
         for r in related:
             print(f"  - {r}")
-        if yes:
+        if auto_append:
             append(related[0], content=content, store_dir=store_dir)
             return
         answer = input("Continue in existing file instead? [y/N]: ").strip().lower()
@@ -672,7 +682,7 @@ def _grep_related(store: Path, title: str, tags: list[str]) -> list[str]:
         for tag in tags:
             if tag in text:
                 score += 2
-        if score >= 2:
+        if score >= 3:
             related.append(str(md_file.relative_to(store)).replace("\\", "/"))
     return related[:5]
 
