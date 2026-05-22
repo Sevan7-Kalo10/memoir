@@ -682,7 +682,7 @@ def _grep_related(store: Path, title: str, tags: list[str]) -> list[str]:
         for tag in tags:
             if tag in text:
                 score += 2
-        if score >= 3:
+        if score >= 2:
             related.append(str(md_file.relative_to(store)).replace("\\", "/"))
     return related[:5]
 
