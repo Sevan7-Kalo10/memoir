@@ -148,7 +148,7 @@ def scan_for_archive(
     for md_file in memory_dir.rglob("*.md"):
         if "archive" in md_file.parts:
             continue
-        if md_file.name.startswith("MEMORY") or md_file.name == "triggers.md":
+        if md_file.name.startswith(("MEMORY", "CLAUDE", "AI_", "README")) or md_file.name in ("triggers.md",):
             continue
 
         try:

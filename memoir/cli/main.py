@@ -142,6 +142,8 @@ def create(
     weight: int = typer.Option(3, "--weight", "-w", help="Initial weight (1-5)"),
     content: str = typer.Option("", "--content", "-c", help="Memory content (or use $EDITOR)"),
     store_dir: str = typer.Option(".", "--store", help="Store root"),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Auto-continue in first related file"),
+    no: bool = typer.Option(False, "--no", "-n", help="Always create new file, skip continue-prior"),
 ):
     """Create a new memory. Greps for related files first (continue-prior)."""
     config = _load_config(store_dir)
@@ -151,17 +153,18 @@ def create(
     tag_list = [t.strip().lower() for t in tags.split(",") if t.strip()]
     related = _grep_related(store, title, tag_list)
 
-    if related:
-        console.print("[yellow]Related files found:[/yellow]")
+    if related and not no:
         for r in related:
-            console.print(f"  • {r}")
-        if not typer.confirm("Continue in existing file instead?"):
-            pass  # User wants a new file
-        else:
+            print(f"  - {r}")
+        if yes:
+            append(related[0], content=content, store_dir=store_dir)
+            return
+        answer = input("Continue in existing file instead? [y/N]: ").strip().lower()
+        if answer in ("y", "yes"):
             if len(related) == 1:
                 append(related[0], content=content, store_dir=store_dir)
             else:
-                choice = typer.prompt("Which file?", default=related[0])
+                choice = input(f"Which file? [{related[0]}]: ").strip() or related[0]
                 append(choice, content=content, store_dir=store_dir)
             return
 
@@ -387,7 +390,7 @@ def trigger(
     if triggered:
         console.print("\n[bold]Files that would load:[/bold]")
         for f in triggered:
-            console.print(f"  • {f}")
+            console.print(f"  - {f}")
 
 
 # ── load ──────────────────────────────────────────────
@@ -445,7 +448,7 @@ def maintain(
     for md_file in store.rglob("*.md"):
         if "archive" in md_file.parts:
             continue
-        if md_file.name.startswith("MEMORY") or md_file.name == config.store.trigger_file:
+        if md_file.name.startswith(("MEMORY", "CLAUDE", "AI_", "README")) or md_file.name in ("triggers.md",):
             continue
 
         try:
@@ -577,12 +580,15 @@ def status(
     for md_file in store.rglob("*.md"):
         if "archive" in md_file.parts:
             continue
-        if md_file.name.startswith("MEMORY") or md_file.name == config.store.trigger_file:
+        if md_file.name.startswith(("MEMORY", "CLAUDE", "AI_", "README")) or md_file.name in ("triggers.md",):
             continue
 
         try:
             fm, _ = parse(md_file)
         except Exception:
+            continue
+
+        if validate(fm):
             continue
 
         total += 1
@@ -653,7 +659,7 @@ def _grep_related(store: Path, title: str, tags: list[str]) -> list[str]:
     for md_file in store.rglob("*.md"):
         if "archive" in md_file.parts:
             continue
-        if md_file.name.startswith("MEMORY") or md_file.name == "triggers.md":
+        if md_file.name.startswith(("MEMORY", "CLAUDE", "AI_", "README")) or md_file.name in ("triggers.md",):
             continue
         try:
             text = md_file.read_text(encoding="utf-8").lower()
@@ -718,7 +724,7 @@ def _grep_store(
     for md_file in store.rglob("*.md"):
         if "archive" in md_file.parts:
             continue
-        if md_file.name.startswith("MEMORY") or md_file.name == "triggers.md":
+        if md_file.name.startswith(("MEMORY", "CLAUDE", "AI_", "README")) or md_file.name in ("triggers.md",):
             continue
 
         try:

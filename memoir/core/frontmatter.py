@@ -16,7 +16,7 @@ _yaml = YAML()
 _yaml.indent(mapping=2, sequence=4, offset=2)
 _yaml_safe = YAML(typ="safe")
 
-_REQUIRED_FIELDS = {"name", "weight", "tags"}
+_REQUIRED_FIELDS = {"name", "weight", "tags", "domain"}
 
 
 def parse(filepath: str | Path) -> tuple[dict, str]:

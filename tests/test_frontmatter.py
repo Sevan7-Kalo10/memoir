@@ -68,7 +68,7 @@ class TestExtractTags:
 
 class TestValidate:
     def test_valid(self):
-        fm = {"name": "x", "weight": 3, "tags": ["a"]}
+        fm = {"name": "x", "weight": 3, "tags": ["a"], "domain": "core"}
         assert validate(fm) == []
 
     def test_missing_required(self):

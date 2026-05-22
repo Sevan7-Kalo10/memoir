@@ -71,7 +71,7 @@ class MemoirIndex:
                 if "archive" in md_file.parts:
                     continue
                 name = md_file.name
-                if name.startswith("MEMORY") or name == "triggers.md":
+                if name.startswith(("MEMORY", "CLAUDE", "AI_", "README")) or name in ("triggers.md",):
                     continue
                 if name == "INDEX.md" and "archive" in str(md_file):
                     continue
