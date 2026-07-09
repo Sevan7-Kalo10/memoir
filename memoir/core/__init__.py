@@ -1,1 +1,0 @@
-from memoir.core.indexer import MemoirIndex, search

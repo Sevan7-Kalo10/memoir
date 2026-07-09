@@ -1,0 +1,31 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat \"${MEMOIR_STORE}/HOT-MEMORY.md\" 2>/dev/null; cat \"${MEMOIR_STORE}/MEMORY.md\" 2>/dev/null; cat \"${MEMOIR_STORE}/triggers.md\" 2>/dev/null; echo '--- memoir: startup context loaded ---'",
+            "commandWindows": "if (Test-Path \"$env:MEMOIR_STORE\\HOT-MEMORY.md\") { Get-Content \"$env:MEMOIR_STORE\\HOT-MEMORY.md\" }; if (Test-Path \"$env:MEMOIR_STORE\\MEMORY.md\") { Get-Content \"$env:MEMOIR_STORE\\MEMORY.md\" }; if (Test-Path \"$env:MEMOIR_STORE\\triggers.md\") { Get-Content \"$env:MEMOIR_STORE\\triggers.md\" }; Write-Output '--- memoir: startup context loaded ---'",
+            "timeout": 5,
+            "statusMessage": "Loading memoir startup files..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '--- memoir: session closing. Run /memoir:digest to maintain memory ---'",
+            "commandWindows": "Write-Output '--- memoir: session closing. Run /memoir:digest to maintain memory ---'",
+            "timeout": 3,
+            "statusMessage": "Memoir: remember to digest"
+          }
+        ]
+      }
+    ]
+  }
+}
