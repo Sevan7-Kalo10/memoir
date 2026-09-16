@@ -98,15 +98,26 @@ Always importance=5. Never optional.
 ## Installation
 
 ```
+/plugin marketplace add Sevan7-Kalo10/memoir
+/plugin install memoir
+```
+
+Two commands. No cloning, no symlinks.
+
+The SessionStart hook loads your startup files automatically; the Stop hook
+reminds you to run maintenance as the session closes. Point `MEMOIR_STORE`
+at your memory directory.
+
+<details>
+<summary>Manual install (no plugin system)</summary>
+
+```
 git clone https://github.com/Sevan7-Kalo10/memoir.git
 ```
 
-Copy or symlink the `memoir/` directory to your Claude Code skills
-directory at `~/.claude/skills/memoir/`.
+Copy or symlink the repo directory to `~/.claude/skills/memoir/`.
 
-The SessionStart hook loads your startup files automatically. The Stop
-hook reminds you to run maintenance. Configure `MEMOIR_STORE` to point to
-your memory directory.
+</details>
 
 ## Commands
 

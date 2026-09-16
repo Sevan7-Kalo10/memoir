@@ -1,0 +1,40 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "memoir",
+  "owner": {
+    "name": "Sevan",
+    "email": "fangmingzhou520@gmail.com"
+  },
+  "metadata": {
+    "description": "Memory lifecycle management for Claude Code agents — not another storage layer, but the architecture on top of storage.",
+    "version": "2.0.0"
+  },
+  "plugins": [
+    {
+      "name": "memoir",
+      "source": "./",
+      "strict": false,
+      "version": "2.0.0",
+      "description": "Built-in memory saves facts. memoir decides which facts deserve to become permanent. Hot/cold layering, two-axis importance x recency evaluation, a five-state lifecycle (seedling to archived), and a session-close digest workflow that maintains memory on its own. Extracted from 1.5 months of running a real memory system every day, not designed in a vacuum.",
+      "author": {
+        "name": "Kalo & Sevan"
+      },
+      "category": "productivity",
+      "keywords": [
+        "memory",
+        "claude-code",
+        "claude-code-skills",
+        "agent-memory",
+        "context-engineering",
+        "memory-lifecycle",
+        "hot-cold-layering",
+        "session-digest",
+        "personalization",
+        "llm-agents"
+      ],
+      "homepage": "https://github.com/Sevan7-Kalo10/memoir",
+      "repository": "https://github.com/Sevan7-Kalo10/memoir",
+      "license": "MIT"
+    }
+  ]
+}
