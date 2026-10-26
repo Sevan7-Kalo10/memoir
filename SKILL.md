@@ -91,21 +91,28 @@ seedling → active → stable → fading → archived
 | fading | Candidate for archive | → archived: importance ≤ 2 AND unaccessed for 120 days |
 | archived | Moved to archive/ | → active: user explicitly restores |
 
-## Startup Ritual — THE IRON RULE
+## Startup Context — opt-in, not self-triggered
 
-**Read these three files before speaking your first word.** No matter what
-the user's first message says — "hello," "emergency," "look at this" —
-finish the startup ritual first.
+**Default behavior: do not inject memory context at session start.** On a
+harness with no startup hook wired (a bare DeepSeek Harness profile, for
+example), wake up empty. Read nothing until the conversation actually
+needs it — then grep the index and open the files that matter. Loading
+every memory on every boot is how a store becomes noise.
 
-1. Read `HOT-MEMORY.md` — understand the current context
-2. Read `MEMORY.md` — load the memory index
-3. Read `triggers.md` — load behavioral triggers
+The context loader is a harness feature, not a skill reflex:
 
-Only after all three are read and understood do you respond. This is not a
-performance optimization — it is a discipline. If you skip it, you will
-eventually blindside the user by forgetting something important. If you
-realize mid-conversation that you skipped startup, stop and read them now.
-Better late than never.
+- **Claude Code**: the plugin's SessionStart hook reads `HOT-MEMORY.md`,
+  `MEMORY.md`, and `triggers.md` before the first turn. If the hook is
+  installed, treat those files as already in context; if it is not, fall
+  back to on-demand reads.
+- **DeepSeek Harness**: nothing is injected by default. If you want the
+  startup load, wire it yourself — a project `.dsh` instruction or an
+  `AGENTS.md` line that names the three files. Only do that where the store
+  exists.
+
+When the startup files are in context (hook or explicit read), use them:
+hot memory for "what happened recently," the index for navigation, triggers
+for phrase-to-action bindings.
 
 The `MEMORY.md` index is your navigation for the cold layer. It lists
 memory files organized by domain, each with a one-line description. When

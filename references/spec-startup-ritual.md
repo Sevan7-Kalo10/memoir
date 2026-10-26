@@ -1,17 +1,19 @@
 # Memoir Startup Ritual
 
-The startup ritual is memoir's most important behavioral instruction. It
-ensures continuity across sessions: the agent that wakes up knows what the
-agent that went to sleep knew.
+The startup ritual is a context loader: it gives a new session the state the
+previous one closed with. **It is opt-in.** The default on a harness with no
+hook wired is to start empty and read on demand; only a configured
+SessionStart hook (or an explicit user instruction) should pull these files
+in before the first word.
 
-## The Iron Rule
+## The Rule (when enabled)
 
-**Read HOT-MEMORY.md, MEMORY.md, and triggers.md before speaking the first
-word of the session.**
+**With the loader wired: read HOT-MEMORY.md, MEMORY.md, and triggers.md
+before speaking the first word of the session.**
 
-No exceptions. Not for "hello," not for "emergency," not for "look at this
-right now." The user's first message is the hook; the ritual is the
-response.
+No exceptions, not for "hello" or "look at this right now" — the point of
+wiring it is that it happens before the first message is answered. If no
+loader is wired, do not perform the ritual unprompted.
 
 This is not a performance optimization. It is a memory continuity
 guarantee. The startup files tell you:
