@@ -10,6 +10,13 @@
             "commandWindows": "if (Test-Path \"$env:MEMOIR_STORE\\HOT-MEMORY.md\") { Get-Content \"$env:MEMOIR_STORE\\HOT-MEMORY.md\" }; if (Test-Path \"$env:MEMOIR_STORE\\MEMORY.md\") { Get-Content \"$env:MEMOIR_STORE\\MEMORY.md\" }; if (Test-Path \"$env:MEMOIR_STORE\\triggers.md\") { Get-Content \"$env:MEMOIR_STORE\\triggers.md\" }; Write-Output '--- memoir: startup context loaded ---'",
             "timeout": 5,
             "statusMessage": "Loading memoir startup files..."
+          },
+          {
+            "type": "command",
+            "command": "python \"${CLAUDE_PLUGIN_ROOT}/scripts/memoir_due.py\" 2>/dev/null || python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/memoir_due.py\" 2>/dev/null || true",
+            "commandWindows": "python \"$env:CLAUDE_PLUGIN_ROOT\\scripts\\memoir_due.py\"",
+            "timeout": 5,
+            "statusMessage": "Checking memoir maintenance window..."
           }
         ]
       }

@@ -96,6 +96,10 @@ importance 5.
   session counting. A store can go months between sessions or have ten in
   a day.
 - **DeepSeek Harness bundle** — same specs, one `/memoir-status` command.
+- **The tooling actually run** — `scripts/memoir_due.py` (SessionStart
+  overdue check), `memoir_maintain.py` (proposal list, `--apply` for
+  transitions only), `memoir_index.py` (rebuild the MEMORY.md index),
+  `memoir_recall.py` (opt-in recall hook). Python stdlib only.
 
 ## Commands
 
@@ -122,7 +126,8 @@ bundle.
 | `SKILL.md` | The skill itself: model, workflows, triggers |
 | `references/` | Specs loaded on demand: model, ingestion, maintenance, migration, startup ritual |
 | `templates/` | Blank hot memory, cold memory, feedback file, triggers |
-| `hooks/` | Claude Code SessionStart / Stop hooks |
+| `hooks/` | Claude Code SessionStart (startup files + due check) / Stop hooks |
+| `scripts/` | The tooling: due check, maintenance proposals, index rebuild, optional recall |
 | `lib/index.js` | DeepSeek Harness bundle: `/memoir-status` |
 
 ## Design rationale

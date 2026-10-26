@@ -71,6 +71,7 @@ seedling → active → stable → fading → archived
 - **`references/spec-migration.md`**——v0.1.x 到 v2 的 frontmatter 迁移规格。仓库从 2.0.0 起就一直链着它，但文件根本不存在。里面有字段映射和两个让老库存迁不动的坑：`metadata.type` 不等于 `layer`，文件 mtime 是批量写入的痕迹。
 - **按日期触发的维护**——一枚“上次维护”的日期戳比数会话可靠。记忆库可能几个月没有会话，也可能一天开十次。
 - **DeepSeek Harness 插件包**——同一份规格，加一个 `/memoir-status` 命令。
+- **我们真正在跑的脚本**——`memoir_due.py`（会话启动查维护是否超期）、`memoir_maintain.py`（出提案，`--apply` 只写寿命态转移）、`memoir_index.py`（重建 MEMORY.md 索引）、`memoir_recall.py`（可选的召回 hook）。只用 Python 标准库。
 
 ## 命令
 
@@ -95,7 +96,8 @@ seedling → active → stable → fading → archived
 | `SKILL.md` | skill 本体：模型、工作流、触发器 |
 | `references/` | 按需加载的规格：模型、摄入、维护、迁移、启动仪式 |
 | `templates/` | 空白热记忆、冷记忆、feedback 文件、触发器 |
-| `hooks/` | Claude Code 的 SessionStart / Stop hook |
+| `hooks/` | Claude Code 的 SessionStart（启动文件 + 查维护期）/ Stop hook |
+| `scripts/` | 工具：查期、维护提案、重建索引、可选召回 |
 | `lib/index.js` | DeepSeek Harness 插件包：`/memoir-status` |
 
 ## 设计缘由

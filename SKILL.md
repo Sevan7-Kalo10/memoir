@@ -221,15 +221,30 @@ Actions can be: execute a shell command, load a specific file, start a
 workflow, ask a question, or any concrete behavior. Unlike v0.1.x triggers
 (which only loaded files), memoir triggers produce real side effects.
 
+## Tooling
+
+`scripts/` ships the tooling this spec was extracted from. Store path from
+`MEMOIR_STORE`, default `./memory`. Python 3.10+, stdlib only.
+
+| Script | Does | When |
+|--------|------|------|
+| `memoir_due.py` | prints an overdue warning when the last full pass is older than `MEMOIR_MAINTAIN_DAYS` (90); silent otherwise | SessionStart hook (wired) |
+| `memoir_maintain.py` | proposal list: lifecycle transitions, archive candidates, merge candidates, orphans. `--apply` writes transitions only — never archives | maintain, digest step 3 |
+| `memoir_index.py` | rebuilds the cold-layer index in MEMORY.md from frontmatter. Dry-run by default, `--write` commits | after adding, moving, or renaming memory files |
+| `memoir_recall.py` | rarity-weighted recall of old memories from a prompt (reads the UserPromptSubmit JSON on stdin) | opt-in; set `MEMOIR_FREQ` to a word-frequency list to suppress common words |
+
+After a full maintenance pass, write today's date into
+`$MEMOIR_STORE/.memoir-last-maintain` — that is what `memoir_due.py` reads.
+
 ## Slash Commands
 
 | Command | Purpose | Loads |
 |---------|---------|-------|
 | `/memoir:init` | Bootstrap memory directory with guided setup | templates/ |
-| `/memoir:status` | Health check: counts, token budget, stale files | MEMORY.md, HOT-MEMORY.md |
+| `/memoir:status` | Health check: counts, token budget, stale files | MEMORY.md, HOT-MEMORY.md, scripts/memoir_maintain.py |
 | `/memoir:remember <fact>` | Create a memory with guided frontmatter | templates/cold-memory.md |
 | `/memoir:digest` | Execute session-close workflow (all 5 steps) | spec-ingestion.md |
-| `/memoir:maintain` | Run maintenance: decay, archive candidates, merge proposals | spec-maintenance.md |
+| `/memoir:maintain` | Run maintenance: decay, archive candidates, merge proposals | spec-maintenance.md, scripts/memoir_maintain.py |
 | `/memoir:audit` | Gap analysis: compare session topics to stored memories | MEMORY.md |
 | `/memoir:archive <file>` | Move a memory to archive/ | archive/INDEX.md |
 | `/memoir:restore <file>` | Restore from archive/ | archive/INDEX.md |
