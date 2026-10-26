@@ -1,5 +1,7 @@
 # memoir
 
+English | [中文](README.zh.md)
+
 **Memory lifecycle management for Claude Code and DeepSeek Harness agents.**
 
 Built-in memory answers "should I save this fact?" memoir answers "is this

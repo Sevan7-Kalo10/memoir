@@ -17,6 +17,7 @@
     "hooks",
     "plugin.yaml",
     "README.md",
+    "README.zh.md",
     "LICENSE"
   ],
   "dsh": {
