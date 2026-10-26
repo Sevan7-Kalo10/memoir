@@ -234,7 +234,9 @@ workflow, ask a question, or any concrete behavior. Unlike v0.1.x triggers
 | `memoir_recall.py` | rarity-weighted recall of old memories from a prompt (reads the UserPromptSubmit JSON on stdin) | opt-in; set `MEMOIR_FREQ` to a word-frequency list to suppress common words |
 
 After a full maintenance pass, write today's date into
-`$MEMOIR_STORE/.memoir-last-maintain` — that is what `memoir_due.py` reads.
+`$MEMOIR_STORE/.memoir-state.json` as `{"lastMaintained": "YYYY-MM-DD"}` —
+that is what `memoir_due.py` and the `/memoir-status` command both read.
+(`.memoir-last-maintain` is still accepted as a legacy fallback.)
 
 ## Slash Commands
 
