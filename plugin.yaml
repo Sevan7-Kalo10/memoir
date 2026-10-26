@@ -1,5 +1,5 @@
 name: memoir
-version: 2.0.0
+version: 2.1.0
 description: Memory lifecycle management for Claude Code agents — hot/cold layering, ingestion discipline, weight evolution, and autonomous self-maintenance.
 author: Kalo & Sevan
 provides_commands:

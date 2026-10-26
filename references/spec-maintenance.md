@@ -9,6 +9,14 @@ digital attic full of boxes no one opens.
 - **Per-session close:** Quick scan — any obvious archive candidates? Any
   seedling memories that need linking? (Part of the digest workflow,
   step 3.)
+- **Wall-clock fallback (recommended over session counting):** keep a
+  last-maintained date stamp in the store and check it at session start;
+  prompt when the interval exceeds a threshold (e.g. 90 days). Session
+  counting is fragile — a store can go months between sessions, or have
+  many in one day. A date stamp is what actually tracks the slow variable.
+  Note its one useful case: sessions happened and memory grew, but no full
+  pass ran. If *no* sessions ran during the interval, no memories changed,
+  so the pass is a no-op — the trigger fires harmlessly and finds nothing.
 - **Weekly (every ~7 sessions):** Full maintenance pass — check all
   lifecycle transitions, propose merges, audit cross-references.
 - **On-demand:** `/memoir:maintain` — user explicitly asks.
