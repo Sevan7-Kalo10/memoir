@@ -1,0 +1,29 @@
+{
+  "name": "dsh-memoir",
+  "version": "2.1.0",
+  "description": "Memory lifecycle management for agents: hot/cold layering, weight evolution, decay, archiving, autonomous self-maintenance. Ships as a Claude Code skill and a DeepSeek Harness bundle from one repo.",
+  "type": "module",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "SKILL.md",
+    "references",
+    "templates",
+    "hooks",
+    "plugin.yaml",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "license": "MIT",
+  "author": "Kalo & Sevan"
+}

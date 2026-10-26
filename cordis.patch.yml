@@ -1,0 +1,6 @@
+# dsh-memoir bundle patch -- registers the /memoir-status command.
+# `name:` must equal the installed package name exactly, or the plugin mounts
+# under a name nothing resolves and the command never shows up.
+- insert:
+    - id: dsh-memoir
+      name: dsh-memoir

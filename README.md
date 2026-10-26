@@ -1,112 +1,46 @@
-# memoir v2
+# memoir
 
-**Memory lifecycle management for Claude Code agents.**
-
-memoir manages what Claude Code's built-in memory doesn't: hot/cold
-layering, weight evolution, archiving, merging, and autonomous
-self-maintenance across sessions.
+**Memory lifecycle management for Claude Code and DeepSeek Harness agents.**
 
 Built-in memory answers "should I save this fact?" memoir answers "is this
 fact still relevant? should it grow, fade, merge, or retire?"
 
-## What went wrong with v0.1.x
+One repo, two install paths: a Claude Code skill, and a DeepSeek Harness
+bundle carrying the same spec.
 
-v0.1.x (May 2026) was a Python package — `pip install ksteam-memoir`, CLI
-commands, FTS5 search, 64 tests. It solved the right problem with the
-wrong interface.
+## Install
 
-**The core mistake:** AI agents don't natively read Python code. They read
-natural language. Asking an agent to learn CLI commands (`memoir create`,
-`memoir load --render`) is asking it to operate in a foreign language. The
-Python package was precise, testable, and well-architected — and it failed
-at the one thing that mattered: the agent couldn't use it without being
-explicitly trained.
-
-The roadmap from May 2022 confirms this blind spot. v0.1.x's top priority
-was "MCP Server + AI_GUIDE.md" — two separate efforts to build a natural
-language interface ON TOP of the Python package. We were bolting a second
-door onto a house because the first one faced the wrong direction.
-
-## Why a Claude Code skill
-
-A skill IS its natural language interface. The SKILL.md body is the
-operational manual — the agent reads it and knows what to do. No CLI to
-memorize, no Python to import, no MCP server to configure.
-
-The three-level progressive disclosure mirrors how memory actually works:
-- **Level 1** (description, always in context): what triggers the skill
-- **Level 2** (SKILL.md body, loaded on trigger): the core model and
-  workflows
-- **Level 3** (references/, loaded on demand): detailed specs for specific
-  tasks
-
-This is what v0.1.x was reaching for with "AI_GUIDE.md" — but as a
-first-class architecture, not a documentation afterthought.
-
-## What memoir actually does
-
-### Hot/cold layering
-
-memoir splits memory into two layers based on one question: **will this
-still matter in six months?**
-
-- **Hot layer** (`HOT-MEMORY.md`, ~2000 tokens): self-maintaining narrative
-  of recent events, active projects, and current behavioral rules. Updated
-  at session close. Answers "what do I need to know when I wake up?"
-- **Cold layer** (`memory/*.md`): permanent insights about the user —
-  identity, values, preferences, behavioral patterns. Judgment-driven: the
-  criterion is not "did we discuss this?" but "does this reveal something
-  about who they ARE?"
-
-### Two-axis evaluation (importance × recency)
-
-v0.1.x used a single `weight` (1-5) that conflated importance and recency.
-A core identity memory untouched for 60 days and a trivial fact accessed 5
-minutes ago could both score w=4 — a false equivalence. memoir v2 splits
-them:
-
-- **importance** (1-5): how crucial is this to identity, behavior, or
-  decision-making?
-- **recency** (timestamp): when was this last accessed or reinforced?
-
-### Lifecycle state machine
-
-```
-seedling → active → stable → fading → archived
-               ↑                      |
-               |______ restore _______|
-```
-
-Memories aren't static files. They grow, mature, fade, and eventually
-retire to the archive. memoir provides the state machine and transition
-rules — the agent proposes, the user confirms.
-
-### Ingestion discipline
-
-The session-close workflow is memoir's engine: (1) update hot memory, (2)
-scan conversation for permanent insights with a sharp filter ("will this
-still matter in 6 months?" AND "does this reveal who they ARE?"), (3) run
-maintenance (decay, merge proposals, archive candidates), (4) audit gaps,
-(5) backup.
-
-### Feedback files as first-class memory
-
-Behavioral corrections ("don't do X," "from now on, Y") are stored as
-structured feedback files: incident → root cause → fix → how to apply.
-Always importance=5. Never optional.
-
-## Installation
+### Claude Code
 
 ```
 /plugin marketplace add Sevan7-Kalo10/memoir
 /plugin install memoir
 ```
 
-Two commands. No cloning, no symlinks.
+The SessionStart hook loads your startup files; the Stop hook reminds you
+to run maintenance as the session closes. Point `MEMOIR_STORE` at your
+memory directory.
 
-The SessionStart hook loads your startup files automatically; the Stop hook
-reminds you to run maintenance as the session closes. Point `MEMOIR_STORE`
-at your memory directory.
+### DeepSeek Harness
+
+```
+dsh plugin --profile web add github:Sevan7-Kalo10/memoir
+```
+
+That registers `/memoir-status`. The skill itself is discovered from the
+filesystem, not from the package manifest (`dsh.skills` has no consumer in
+current builds), so link it into a discovery root once:
+
+```
+ln -s "$DSH_HOME/profiles/web/node_modules/dsh-memoir" "$DSH_HOME/skills/memoir"
+```
+
+```powershell
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.dsh\skills\memoir" `
+  -Target "$env:USERPROFILE\.dsh\profiles\web\node_modules\dsh-memoir"
+```
+
+Project-scoped alternative: link into `<project>/.dsh/skills/memoir`.
 
 <details>
 <summary>Manual install (no plugin system)</summary>
@@ -119,57 +53,77 @@ Copy or symlink the repo directory to `~/.claude/skills/memoir/`.
 
 </details>
 
+## What it does
+
+memoir splits memory into two layers by one question: **will this still
+matter in six months?**
+
+- **Hot layer** (`HOT-MEMORY.md`, ~2000 tokens): narrative of recent
+  events, active projects, current behavioral rules. Updated at session
+  close. Answers "what do I need to know when I wake up?"
+- **Cold layer** (`memory/*.md`): permanent insights about the user —
+  identity, values, preferences, patterns. The criterion is not "did we
+  discuss this?" but "does this reveal who they are?"
+
+Every memory carries two independent axes — **importance** (1-5) and
+**recency** — plus a lifecycle state:
+
+```
+seedling → active → stable → fading → archived
+               ↑                      |
+               |______ restore _______|
+```
+
+The session-close workflow is the engine: update hot memory, scan the
+conversation for permanent insights, run maintenance (decay, merge
+proposals, archive candidates), audit gaps, back up. The agent proposes;
+the user confirms.
+
+Behavioral corrections ("don't do X", "from now on, Y") become structured
+feedback files: incident → root cause → fix → how to apply. Always
+importance 5.
+
+## What v2.1 adds
+
+- **`references/spec-migration.md`** — the v0.1.x → v2 frontmatter
+  migration this repo had been linking to since 2.0.0 without the file
+  existing. Field mapping plus the two gotchas that made old stores
+  unmigratable: `metadata.type` is not `layer`, and file mtimes are
+  bulk-write artifacts.
+- **Wall-clock maintenance trigger** — a last-maintained date stamp beats
+  session counting. A store can go months between sessions or have ten in
+  a day.
+- **DeepSeek Harness bundle** — same specs, one `/memoir-status` command.
+
 ## Commands
 
 | Command | Purpose |
 |---------|---------|
-| `/memoir:init` | Bootstrap memory directory with guided questions |
+| `/memoir:init` | Bootstrap a memory directory with guided questions |
 | `/memoir:status` | Health check: token budget, staleness, domain counts |
 | `/memoir:remember <fact>` | Create a memory with guided frontmatter |
-| `/memoir:digest` | Execute full session-close workflow |
-| `/memoir:maintain` | Run maintenance: decay, merge, archive proposals |
+| `/memoir:digest` | Execute the session-close workflow |
+| `/memoir:maintain` | Decay, merge, archive proposals |
 | `/memoir:audit` | Gap analysis: topics vs stored memories |
 | `/memoir:archive <file>` | Move a memory to archive |
 | `/memoir:restore <file>` | Restore from archive |
 | `/memoir:merge <f1> <f2>` | Merge two related memories |
 
-## Relationship to Claude Code's built-in memory
+On DeepSeek Harness the slash commands come from the skill text (the agent
+reads SKILL.md); `/memoir-status` is also registered natively by the
+bundle.
 
-They are complementary, not competing:
+## Layout
 
-- **Built-in memory** handles ad-hoc fact storage — the LLM decides a fact
-  is worth saving, writes it, and it's injected into future contexts. It
-  has no lifecycle, no decay, no layering.
-- **memoir** handles the architecture — what deserves to be permanent vs
-  temporary, what should be hot vs cold, when to merge, when to archive.
+| Path | Purpose |
+|------|---------|
+| `SKILL.md` | The skill itself: model, workflows, triggers |
+| `references/` | Specs loaded on demand: model, ingestion, maintenance, migration, startup ritual |
+| `templates/` | Blank hot memory, cold memory, feedback file, triggers |
+| `hooks/` | Claude Code SessionStart / Stop hooks |
+| `lib/index.js` | DeepSeek Harness bundle: `/memoir-status` |
 
-Built-in memory is a KV store. memoir is a gardener.
+## Design rationale
 
-## Differences from v0.1.x
-
-| | v0.1.x (Python package) | v2.0 (Claude Code skill) |
-|---|---|---|
-| Interface | CLI commands + Python API | Natural language (SKILL.md) |
-| Deployment | `pip install` | Copy a directory |
-| Weight model | Single weight (1-5) | Two-axis: importance × recency |
-| Memory layers | 4-tier loading algorithm | Hot/cold layered architecture |
-| Ingestion | None (write-only) | Three-pathway ingestion discipline |
-| Maintenance | Decay only | Full lifecycle: digest → maintain → audit |
-| Triggers | File-loading hints | Phrase-to-action bindings |
-| Platform | Claude Code only (hooks-dependent) | Any Claude Code agent |
-| Feedback files | Not a concept | First-class memory type |
-
-## The real lineage
-
-memoir v2 didn't come from refactoring v0.1.x. It came from 1.5 months of
-actually running a memory system every day — Kalo's memory at
-`D:\tool\kalo\memory\`, which grew from a few files to 94 cold memories, 67
-philosophy entries, a book index, and a self-maintaining hot layer that
-gets updated at every session close.
-
-The patterns that made it into memoir v2 — the iron rule of loading startup
-files before speaking, the hot/cold split, the ingestion filter ("will this
-matter in 6 months?"), feedback files as behavioral law — were discovered
-organically. They're not design decisions. They're scars.
-
-v0.1.x extracted the file format and the CLI. v2 extracts the discipline.
+Why memoir is a skill and not a Python CLI, what went wrong with v0.1.x,
+and where the patterns actually came from: [docs/design-rationale.md](docs/design-rationale.md).
