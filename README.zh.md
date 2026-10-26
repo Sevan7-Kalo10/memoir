@@ -23,9 +23,7 @@ SessionStart hook 负责加载启动文件，Stop hook 在会话收尾时提醒�
 dsh plugin --profile web add github:Sevan7-Kalo10/memoir
 ```
 
-这条注册的是 `/memoir-status`。**会话启动时不注入任何记忆上下文**——插件包不碰上下文，skill 只在被调用时读记忆。真想要启动加载，自己接，见 `references/spec-startup-ritual.md`。
-
-skill 本身从文件系统发现，不看包里的清单（当前版本的 `dsh.skills` 没有消费方），所以还要链一次：
+这条注册的是 `/memoir-status`。skill 本身从文件系统发现，不看包里的清单（当前版本的 `dsh.skills` 没有消费方），所以还要链一次：
 
 ```
 ln -s "$DSH_HOME/profiles/web/node_modules/dsh-memoir" "$DSH_HOME/skills/memoir"

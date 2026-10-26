@@ -29,14 +29,9 @@ memory directory.
 dsh plugin --profile web add github:Sevan7-Kalo10/memoir
 ```
 
-That registers `/memoir-status`. **Nothing is injected at session start** —
-the bundle does not touch context; the skill reads memory only when
-invoked. If you want the startup load anyway, wire it yourself (see
-`references/spec-startup-ritual.md`).
-
-The skill itself is discovered from the filesystem, not from the package
-manifest (`dsh.skills` has no consumer in current builds), so link it into a
-discovery root once:
+That registers `/memoir-status`. The skill itself is discovered from the
+filesystem, not from the package manifest (`dsh.skills` has no consumer in
+current builds), so link it into a discovery root once:
 
 ```
 ln -s "$DSH_HOME/profiles/web/node_modules/dsh-memoir" "$DSH_HOME/skills/memoir"
