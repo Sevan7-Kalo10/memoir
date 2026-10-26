@@ -25,13 +25,17 @@ memory directory.
 
 ### DeepSeek Harness
 
+Search for `memoir` in the desktop app's Plugins page. CLI:
+
 ```
 dsh plugin --profile web add github:Sevan7-Kalo10/memoir
 ```
 
 That registers `/memoir-status`. The skill itself is discovered from the
 filesystem, not from the package manifest (`dsh.skills` has no consumer in
-current builds), so link it into a discovery root once:
+current builds), so copy `SKILL.md`, `references/`, and `templates/` into a
+discovery root — `~/.dsh/skills/memoir/` or `<project>/.dsh/skills/memoir/`.
+A CLI-installed package can also be linked once:
 
 ```
 ln -s "$DSH_HOME/profiles/web/node_modules/dsh-memoir" "$DSH_HOME/skills/memoir"

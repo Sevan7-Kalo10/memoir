@@ -19,11 +19,13 @@ SessionStart hook 负责加载启动文件，Stop hook 在会话收尾时提醒�
 
 ### DeepSeek Harness
 
+桌面版的插件页里直接搜 `memoir` 就能装。命令行版：
+
 ```
 dsh plugin --profile web add github:Sevan7-Kalo10/memoir
 ```
 
-这条注册的是 `/memoir-status`。skill 本身从文件系统发现，不看包里的清单（当前版本的 `dsh.skills` 没有消费方），所以还要链一次：
+装完注册的是 `/memoir-status`。skill 本身从文件系统发现，不看包里的清单（当前版本的 `dsh.skills` 没有消费方），所以还要把 `SKILL.md`、`references/`、`templates/` 放进一个发现根——`~/.dsh/skills/memoir/` 或工作区里的 `.dsh/skills/memoir/`。命令行安装的包也可以直接链一次：
 
 ```
 ln -s "$DSH_HOME/profiles/web/node_modules/dsh-memoir" "$DSH_HOME/skills/memoir"
